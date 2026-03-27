@@ -3,13 +3,13 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 serve(async (req) => {
   const url = new URL(req.url);
 
-  // ✅ Serve HTML directly (NO file reading)
+  // HTML
   if (url.pathname === "/") {
     return new Response(`
       <html>
-      <head><title>YouTube Tool</title></head>
       <body style="font-family: Arial; text-align:center; padding:40px;">
-        <h2>YouTube Tool (Deno)</h2>
+        <h2>YouTube Tool</h2>
+
         <input id="url" placeholder="Paste YouTube URL" style="width:60%;padding:10px;">
         <br><br>
         <button onclick="fetchData()">Fetch</button>
@@ -18,20 +18,19 @@ serve(async (req) => {
 
         <script>
         async function fetchData() {
-          const url = document.getElementById("url").value;
-          const res = await fetch('/api?url=' + url);
+          const input = document.getElementById("url").value;
+          const res = await fetch('/api?url=' + input);
           const data = await res.json();
 
-          document.getElementById("result").innerHTML = \`
-            <h3>\${data.title}</h3>
-            <p>\${data.author}</p>
-            <img src="\${data.thumbnail}" width="300"><br><br>
-            \${data.qualities.map(q => "<button>"+q+"</button>").join("")}
-            <br><br>
-            <button>MP3</button>
-          \`;
+          document.getElementById("result").innerHTML =
+            "<h3>" + data.title + "</h3>" +
+            "<p>" + data.author + "</p>" +
+            "<img src='" + data.thumbnail + "' width='300'><br><br>" +
+            data.qualities.map(q => "<button>"+q+"</button>").join("") +
+            "<br><br><button>MP3</button>";
         }
         </script>
+
       </body>
       </html>
     `, {
@@ -39,7 +38,7 @@ serve(async (req) => {
     });
   }
 
-  // ✅ API route
+  // API
   if (url.pathname === "/api") {
     const videoUrl = url.searchParams.get("url");
 
@@ -59,7 +58,7 @@ serve(async (req) => {
 
     try {
       const res = await fetch(
-        \`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=\${videoId}&format=json\`
+        "https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=" + videoId + "&format=json"
       );
       const data = await res.json();
       title = data.title;
@@ -69,7 +68,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       title,
       author,
-      thumbnail: \`https://img.youtube.com/vi/\${videoId}/hqdefault.jpg\`,
+      thumbnail: "https://img.youtube.com/vi/" + videoId + "/hqdefault.jpg",
       qualities: ["144p","360p","720p","1080p"]
     }), {
       headers: { "content-type": "application/json" },
